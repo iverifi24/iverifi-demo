@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#060810">
+<title>iVeriFi – Check-In</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800;900&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:    #00E5C3;
+  --teal-d:  rgba(0,229,195,0.10);
+  --teal-b:  rgba(0,229,195,0.22);
+  --purple:  #7C5CFC;
+  --bg:      #060810;
+  --s1:      #0C1220;
+  --s2:      #111928;
+  --border:  rgba(255,255,255,0.07);
+  --bt:      rgba(0,229,195,0.20);
+  --white:   #EEF4FF;
+  --muted:   rgba(238,244,255,0.44);
+  --green:   #00D97E;
+  --danger:  #FF4D6D;
+  --amber:   #FFB800;
+  --grad:    linear-gradient(130deg,#00c9ac,#6C4EE8);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{height:100%;background:#0a0a0a;}
+body{
+  font-family:'Manrope',sans-serif;
+  color:var(--white);
+  min-height:100vh;
+  min-height:-webkit-fill-available;
+  display:flex;align-items:flex-start;justify-content:center;
+  background:#0a0a0a;
+  padding:0;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+/* ── PHONE FRAME (on desktop) ── */
+#frame{
+  width:100%;
+  max-width:430px;
+  min-height:100vh;
+  min-height:-webkit-fill-available;
+  background:var(--bg);
+  position:relative;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+@media(min-width:500px){
+  body{align-items:center;padding:20px 0 40px;}
+  #frame{
+    min-height:auto;
+    height:min(860px,95vh);
+    border-radius:40px;
+    border:1.5px solid rgba(255,255,255,0.12);
+    box-shadow:0 60px 120px rgba(0,0,0,0.8),0 0 0 1px rgba(0,229,195,0.06);
+  }
+}
+
+/* ── BACKGROUND ── */
+.bg-orb{
+  position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;
+}
+#bo1{width:300px;height:300px;background:var(--teal);top:-15%;left:-20%;opacity:0.12;}
+#bo2{width:250px;height:250px;background:var(--purple);bottom:-15%;right:-15%;opacity:0.10;}
+
+/* ── PROGRESS BAR ── */
+#pbar{
+  position:absolute;top:0;left:0;right:0;height:3px;
+  background:rgba(255,255,255,0.06);z-index:100;
+}
+#pfill{
+  height:100%;width:0%;
+  background:var(--grad);
+  border-radius:0 2px 2px 0;
+  transition:width 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── HEADER ── */
+#hdr{
+  position:absolute;top:0;left:0;right:0;z-index:90;
+  padding:16px 20px 0;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo-txt{
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:800;
+  letter-spacing:1.5px;
+  background:linear-gradient(135deg,#fff,var(--teal));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.back-btn{
+  width:36px;height:36px;border-radius:12px;
+  background:rgba(255,255,255,0.06);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:var(--white);cursor:pointer;
+  transition:background 0.15s;visibility:hidden;
+}
+.back-btn.vis{visibility:visible;}
+.back-btn:active{background:rgba(255,255,255,0.12);}
+.step-pill{
+  font-family:'Syne',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:1.5px;
+  color:var(--teal);
+  background:var(--teal-d);border:1px solid var(--bt);
+  border-radius:100px;padding:5px 13px;
+  visibility:hidden;
+}
+.step-pill.vis{visibility:visible;}
+
+/* ── SCREENS ── */
+#screens{flex:1;position:relative;overflow:hidden;}
+.sc{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;
+  padding:56px 0 80px;
+  opacity:0;transform:translateX(100%);
+  pointer-events:none;
+  transition:opacity 0.38s ease,transform 0.38s cubic-bezier(0.4,0,0.2,1);
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.sc::-webkit-scrollbar{display:none;}
+.sc.active{opacity:1;transform:translateX(0);pointer-events:all;}
+.sc.exit{opacity:0;transform:translateX(-40%);}
+
+/* stagger children */
+.sc.active .ani{animation:fadeUp 0.4s ease both;}
+.ani.d1{animation-delay:0.05s!important;}
+.ani.d2{animation-delay:0.14s!important;}
+.ani.d3{animation-delay:0.23s!important;}
+.ani.d4{animation-delay:0.32s!important;}
+.ani.d5{animation-delay:0.42s!important;}
+.ani.d6{animation-delay:0.52s!important;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── HERO AREA ── */
+.hero{padding:0 24px 0;position:relative;z-index:2;}
+.hero-icon{
+  width:76px;height:76px;border-radius:24px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;margin-bottom:20px;
+}
+.hi-t{background:rgba(0,229,195,0.10);border:1.5px solid rgba(0,229,195,0.25);}
+.hi-p{background:rgba(124,92,252,0.10);border:1.5px solid rgba(124,92,252,0.28);}
+.hi-g{background:rgba(0,217,126,0.10);border:1.5px solid rgba(0,217,126,0.25);}
+.hi-a{background:rgba(255,184,0,0.10);border:1.5px solid rgba(255,184,0,0.25);}
+h1.hl{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(28px,8vw,34px);font-weight:900;
+  line-height:1.12;color:#fff;margin-bottom:9px;
+}
+h1.hl em{font-style:normal;color:var(--teal);}
+.sub{font-size:14px;color:var(--muted);line-height:1.65;}
+.sub strong{color:var(--white);}
+.kicker{
+  font-size:11px;font-weight:700;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--teal);
+  margin-bottom:8px;
+}
+
+/* ── BODY AREA ── */
+.body{
+  padding:20px 20px 0;
+  display:flex;flex-direction:column;gap:14px;
+  position:relative;z-index:2;flex:1;
+}
+
+/* ── FORM ELEMENTS ── */
+.field{display:flex;flex-direction:column;gap:7px;}
+.label{
+  font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--teal);
+}
+.inp-wrap{
+  background:var(--s1);border:1.5px solid var(--border);
+  border-radius:15px;overflow:hidden;
+  display:flex;align-items:center;
+  transition:border-color 0.2s;
+}
+.inp-wrap:focus-within{border-color:var(--teal);}
+.inp-pfx{
+  background:var(--s2);border-right:1px solid var(--border);
+  padding:0 14px;
+  font-size:14px;font-weight:700;color:var(--white);
+  white-space:nowrap;
+  display:flex;align-items:center;height:100%;
+}
+input[type=tel],input[type=text],input[type=email]{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:'Manrope',sans-serif;
+  font-size:17px;font-weight:700;color:var(--white);
+  padding:17px 16px;min-width:0;
+  caret-color:var(--teal);
+}
+input[type=text]{font-size:15px;font-weight:600;}
+input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
+
+/* ── OTP ── */
+.otp-row{display:flex;gap:10px;justify-content:center;}
+.ob{
+  flex:1;height:60px;
+  background:var(--s1);
+  border:2px solid var(--border);
+  border-radius:15px;
+  font-family:'Syne',sans-serif;font-size:26px;font-weight:700;
+  color:var(--white);text-align:center;outline:none;
+  caret-color:var(--teal);
+  transition:border-color 0.18s,transform 0.12s;
+}
+.ob:focus{border-color:var(--teal);transform:scale(1.06);}
+.ob.filled{border-color:rgba(0,229,195,0.45);}
+
+/* ── TC CHECKBOX ── */
+.tc-row{
+  background:var(--s1);border:1.5px solid var(--border);
+  border-radius:16px;padding:15px;
+  display:flex;align-items:flex-start;gap:13px;
+  cursor:pointer;transition:border-color 0.2s,background 0.2s;
+}
+.tc-row.on{border-color:var(--teal);background:rgba(0,229,195,0.05);}
+.tc-chk{
+  width:24px;height:24px;flex-shrink:0;border-radius:8px;
+  background:var(--s2);border:2px solid var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;transition:all 0.18s;
+}
+.tc-row.on .tc-chk{background:var(--teal);border-color:var(--teal);color:#000;}
+.tc-txt{font-size:12px;color:var(--muted);line-height:1.6;}
+.tc-txt a{color:var(--teal);font-weight:700;text-decoration:none;}
+.tc-txt strong{color:var(--white);}
+
+/* ── DOCUMENT CARDS ── */
+.doc-card{
+  background:var(--s1);border:2px solid var(--border);
+  border-radius:18px;padding:15px 17px;
+  display:flex;align-items:center;gap:14px;
+  cursor:pointer;transition:border-color 0.18s,background 0.18s,transform 0.1s;
+}
+.doc-card:active{transform:scale(0.98);}
+.doc-card.sel{border-color:var(--teal);background:rgba(0,229,195,0.05);}
+.doc-card.dim{opacity:0.42;}
+.dc-icon{
+  width:48px;height:48px;border-radius:14px;flex-shrink:0;
+  background:var(--s2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+}
+.dc-info{flex:1;}
+.dc-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:2px;}
+.dc-sub{font-size:12px;}
+.dc-sub.t{color:var(--teal);}
+.dc-sub.m{color:var(--muted);}
+.dc-radio{
+  width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color 0.18s;flex-shrink:0;
+}
+.doc-card.sel .dc-radio{border-color:var(--teal);}
+.dc-dot{width:11px;height:11px;border-radius:50%;background:var(--teal);opacity:0;transition:opacity 0.18s;}
+.doc-card.sel .dc-dot{opacity:1;}
+
+/* ── PRIVACY CHIPS ── */
+.priv-block{border-radius:18px;padding:16px 17px;display:flex;flex-direction:column;gap:10px;}
+.pb-y{background:rgba(0,217,126,0.06);border:1px solid rgba(0,217,126,0.2);}
+.pb-n{background:rgba(255,77,109,0.05);border:1px solid rgba(255,77,109,0.15);}
+.pb-head{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;}
+.pb-y .pb-head{color:var(--green);}
+.pb-n .pb-head{color:var(--danger);}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{border-radius:100px;padding:5px 13px;font-size:12px;font-weight:700;}
+.cy{background:rgba(0,217,126,0.1);border:1px solid rgba(0,217,126,0.25);color:var(--green);}
+.cn{background:rgba(255,77,109,0.08);border:1px solid rgba(255,77,109,0.2);color:var(--danger);}
+
+/* ── EXPIRY TABS ── */
+.exp-row{display:flex;gap:8px;}
+.et{
+  flex:1;padding:11px 6px;text-align:center;
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  border-radius:12px;cursor:pointer;transition:all 0.18s;
+}
+.et.on{background:rgba(0,229,195,0.09);border:1.5px solid rgba(0,229,195,0.3);color:var(--teal);}
+.et.off{background:var(--s2);border:1px solid var(--border);color:var(--muted);}
+
+/* ── INFO BANNER ── */
+.info-box{
+  background:rgba(0,229,195,0.05);border:1px solid rgba(0,229,195,0.15);
+  border-radius:15px;padding:13px 15px;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.ib-ico{font-size:18px;flex-shrink:0;margin-top:1px;}
+.ib-txt{font-size:12px;color:var(--muted);line-height:1.6;}
+.ib-txt strong{color:var(--white);}
+
+/* ── TRUST PILLS ── */
+.trust-row{display:flex;gap:7px;flex-wrap:wrap;}
+.trust-pill{
+  background:var(--teal-d);border:1px solid var(--bt);
+  border-radius:100px;padding:6px 12px;
+  font-size:11px;font-weight:700;color:var(--teal);white-space:nowrap;
+}
+
+/* ── DL CONNECTING ── */
+.dl-logo{
+  width:68px;height:68px;background:#fff;border-radius:18px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:38px;margin:0 auto 12px;
+  box-shadow:0 0 0 8px var(--teal-d);
+}
+.dl-dots{display:flex;gap:8px;justify-content:center;margin:10px 0;}
+.dld{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--teal);opacity:0.2;
+  animation:dlb 1.2s ease-in-out infinite;
+}
+.dld:nth-child(2){animation-delay:.2s;}
+.dld:nth-child(3){animation-delay:.4s;}
+@keyframes dlb{0%,80%,100%{opacity:.2;}40%{opacity:1;}}
+.dl-steps{display:flex;flex-direction:column;gap:0;}
+.dl-item{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 0;position:relative;font-size:13px;
+  transition:color 0.3s;color:var(--muted);
+}
+.dl-item:not(:last-child)::after{
+  content:'';position:absolute;left:15px;top:36px;
+  width:2px;height:calc(100% - 8px);
+  background:var(--border);
+}
+.dl-item.done::after{background:rgba(0,229,195,0.3);}
+.dl-item.done{color:var(--teal);}
+.dl-item.act{color:var(--white);font-weight:600;}
+.dl-n{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;position:relative;z-index:1;
+  transition:all 0.3s;
+}
+.dn-done{background:var(--teal);color:#000;}
+.dn-act{background:rgba(0,229,195,0.15);border:2px solid var(--teal);color:var(--teal);animation:dnp 1.2s infinite;}
+.dn-wait{background:rgba(255,255,255,0.05);border:2px solid rgba(255,255,255,0.1);color:var(--muted);}
+@keyframes dnp{0%,100%{box-shadow:0 0 0 0 rgba(0,229,195,.4);}50%{box-shadow:0 0 0 7px rgba(0,229,195,0);}}
+
+/* ── SUCCESS ── */
+.sring{
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(0,200,100,0.07);border:2px solid rgba(0,200,100,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:56px;margin:0 auto 22px;
+  animation:sRingIn 0.55s cubic-bezier(.34,1.56,.64,1) both;
+  position:relative;
+}
+.sring::before{
+  content:'';position:absolute;inset:-10px;border-radius:50%;
+  border:1px solid rgba(0,200,100,0.1);
+  animation:sRingSpin 8s linear infinite;
+}
+@keyframes sRingIn{from{transform:scale(0.3);opacity:0;}to{transform:scale(1);opacity:1;}}
+@keyframes sRingSpin{to{transform:rotate(360deg);}}
+.receipt{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+}
+.rr{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.rr:last-child{border-bottom:none;}
+.rk{font-size:12px;color:var(--muted);}
+.rv{font-size:13px;font-weight:700;}
+.rv.t{color:var(--teal);}
+.rv.g{color:var(--green);}
+.rv.d{color:var(--danger);}
+
+/* ── BUTTONS ── */
+.btn{
+  width:100%;padding:18px;border:none;border-radius:17px;
+  background:var(--grad);color:#000;
+  font-family:'Syne',sans-serif;font-size:17px;font-weight:900;
+  cursor:pointer;
+  box-shadow:0 8px 28px rgba(0,229,195,0.22);
+  transition:transform 0.12s,box-shadow 0.15s;
+  letter-spacing:0.3px;position:relative;overflow:hidden;
+}
+.btn:active{transform:scale(0.97);box-shadow:0 4px 14px rgba(0,229,195,0.12);}
+.btn:disabled{opacity:0.36;box-shadow:none;cursor:not-allowed;}
+.btn-ghost{
+  width:100%;padding:14px;
+  border:1.5px solid var(--border);border-radius:14px;
+  background:transparent;color:var(--muted);
+  font-family:'Manrope',sans-serif;font-size:14px;font-weight:500;
+  cursor:pointer;transition:color 0.18s,border-color 0.18s;
+}
+.btn-ghost:hover{color:var(--white);border-color:rgba(255,255,255,0.2);}
+.btn-google{
+  width:100%;padding:14px;
+  border:1.5px solid var(--border);border-radius:14px;
+  background:var(--s1);
+  font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;
+  color:var(--white);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:background 0.15s;
+}
+.btn-google:active{background:var(--s2);}
+.g-dot{
+  width:18px;height:18px;border-radius:50%;flex-shrink:0;
+  background:conic-gradient(#4285F4 0 25%,#EA4335 25% 50%,#FBBC05 50% 75%,#34A853 75%);
+}
+.divider{
+  display:flex;align-items:center;gap:12px;
+  color:var(--muted);font-size:12px;font-weight:600;
+}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.foot{text-align:center;font-size:11px;color:var(--muted);}
+
+/* ── FOREIGN BANNER ── */
+.foreign-bar{
+  background:linear-gradient(130deg,rgba(124,92,252,0.12),rgba(0,229,195,0.06));
+  border:1.5px solid rgba(124,92,252,0.3);border-radius:17px;
+  padding:14px 16px;display:flex;align-items:center;gap:13px;
+  cursor:pointer;
+}
+.foreign-bar:active{opacity:0.85;}
+.fb-icon{font-size:26px;flex-shrink:0;}
+.fb-text .ft1{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;}
+.fb-text .ft2{font-size:12px;color:var(--muted);margin-top:2px;}
+.fb-arr{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--teal);margin-left:auto;white-space:nowrap;}
+
+/* ── CONFETTI ── */
+.cfp{
+  position:fixed;width:7px;height:7px;
+  opacity:0;z-index:999;border-radius:2px;
+  animation:cffall 2.8s ease-in both;pointer-events:none;
+}
+@keyframes cffall{
+  0%{opacity:1;transform:translateY(0) rotate(0);}
+  100%{opacity:0;transform:translateY(100vh) rotate(720deg);}
+}
+
+/* ── HOTEL BADGE ── */
+.hotel-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(0,229,195,0.08);border:1px solid rgba(0,229,195,0.22);
+  border-radius:100px;padding:7px 14px;
+  font-size:13px;font-weight:600;color:var(--teal);
+  margin-bottom:20px;
+}
+
+/* ── NAME TAG (success) ── */
+.name-tag{
+  background:linear-gradient(130deg,rgba(0,229,195,0.08),rgba(124,92,252,0.08));
+  border:1.5px solid rgba(0,229,195,0.2);border-radius:16px;
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+  margin-bottom:4px;
+}
+.nt-avatar{
+  width:46px;height:46px;border-radius:14px;flex-shrink:0;
+  background:rgba(0,229,195,0.15);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--teal);
+}
+.nt-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;}
+.nt-sub{font-size:12px;color:var(--teal);margin-top:2px;}
+
+/* ── OTP HINT ── */
+.otp-hint{text-align:center;font-size:12px;color:var(--muted);}
+.otp-hint a{color:var(--teal);font-weight:700;text-decoration:none;}
+
+/* demo bar */
+#demo-bar{
+  position:fixed;bottom:16px;right:16px;
+  z-index:500;
+  background:rgba(10,15,24,0.92);
+  border:1px solid rgba(255,184,0,0.3);
+  border-radius:100px;
+  padding:7px 14px;
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;color:var(--amber);font-weight:600;
+  backdrop-filter:blur(12px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  max-width:calc(100vw - 32px);
+}
+#demo-bar span{opacity:0.7;}
+.demo-skip{
+  padding:3px 10px;
+  background:rgba(255,184,0,0.15);border:1px solid rgba(255,184,0,0.3);
+  border-radius:100px;color:var(--amber);font-size:11px;font-weight:700;
+  cursor:pointer;white-space:nowrap;
+}
+</style>
+</head>
+<body>
+
+<!-- Demo mode bar -->
+<div id="demo-bar">
+  <span>🧪</span> <span>Demo simulation · No real OTP sent · Your data stays on your device</span>
+  <div class="demo-skip" onclick="demoSkip()">Skip to end →</div>
+</div>
+
+<div id="frame">
+  <div class="bg-orb" id="bo1"></div>
+  <div class="bg-orb" id="bo2"></div>
+  <div id="pbar"><div id="pfill"></div></div>
+
+  <!-- HEADER -->
+  <div id="hdr">
+    <div class="back-btn" id="backBtn" onclick="goBack()">←</div>
+    <div class="step-pill" id="stepPill">Step 1 of 6</div>
+    <div class="logo-txt">iVeriFi™</div>
+  </div>
+
+  <div id="screens">
+
+  <!-- ═══ S0: WELCOME ═══ -->
+  <div class="sc active" id="s0">
+    <div class="hero" style="padding-top:8px">
+      <div class="hotel-badge ani d1">🏨 Hotel Plaza — Check-In</div>
+      <h1 class="hl ani d2">Verify your ID.<br><em>In 30 seconds.</em></h1>
+      <p class="sub ani d3">No photocopies. No paper forms. Just a secure govt-verified identity check — and you're done.</p>
+      <div class="trust-row ani d4" style="margin-top:14px">
+        <span class="trust-pill">🔒 DPDP Compliant</span>
+        <span class="trust-pill">🏛️ Govt Verified</span>
+        <span class="trust-pill">✅ Zero Copies</span>
+        <span class="trust-pill">⚡ 30 Seconds</span>
+      </div>
+    </div>
+    <div class="body">
+      <div class="tc-row ani d5" id="tcRow" onclick="toggleTC()">
+        <div class="tc-chk" id="tcChk"></div>
+        <div class="tc-txt">
+          I agree to the <a href="#">Terms &amp; Conditions</a> and <a href="#">Privacy Policy</a>.<br>
+          <strong>Your documents are never copied or stored.</strong>
+        </div>
+      </div>
+      <button class="btn ani d6" id="startBtn" onclick="go(1)" disabled>Start Check-In →</button>
+      <p class="foot ani d6">Takes about 30 seconds</p>
+    </div>
+  </div>
+
+  <!-- ═══ S1: PHONE ═══ -->
+  <div class="sc" id="s1">
+    <div class="hero">
+      <div class="hero-icon hi-t ani d1">📱</div>
+      <div class="kicker ani d1">Step 1 of 6</div>
+      <h1 class="hl ani d2">Your mobile<br><em>number</em></h1>
+      <p class="sub ani d3">We'll send a one-time code to confirm it's you.</p>
+    </div>
+    <div class="body">
+      <div class="field ani d4">
+        <div class="label">Mobile Number</div>
+        <div class="inp-wrap">
+          <div class="inp-pfx">🇮🇳 +91</div>
+          <input type="tel" id="phoneInp" inputmode="numeric" maxlength="10" placeholder="98765 43210" oninput="valPhone()">
+        </div>
+      </div>
+      <button class="btn ani d5" id="otpBtn" onclick="sendOtp()" disabled>Send OTP →</button>
+      <div class="divider ani d5">or</div>
+      <button class="btn-google ani d5" onclick="go(2)">
+        <div class="g-dot"></div> Continue with Google
+      </button>
+      <p class="foot ani d5">Data protected under DPDP Act 2023</p>
+    </div>
+  </div>
+
+  <!-- ═══ S2: OTP ═══ -->
+  <div class="sc" id="s2">
+    <div class="hero">
+      <div class="hero-icon hi-p ani d1">🔐</div>
+      <div class="kicker ani d1">Step 2 of 6</div>
+      <h1 class="hl ani d2">Enter the<br><em>6-digit code</em></h1>
+      <p class="sub ani d3">Sent to <span id="phoneMask" style="color:var(--white);font-weight:700"></span></p>
+    </div>
+    <div class="body">
+      <div class="otp-row ani d4" id="otpRow">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o0">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o1">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o2">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o3">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o4">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o5">
+      </div>
+      <div class="info-box ani d4">
+        <span class="ib-ico">🧪</span>
+        <div class="ib-txt"><strong>Demo mode:</strong> enter any 6 digits to continue</div>
+      </div>
+      <button class="btn ani d5" id="verBtn" onclick="go(3)" disabled>Verify &amp; Continue →</button>
+      <p class="otp-hint ani d5">Didn't get it? <a href="#" onclick="return false">Resend code</a></p>
+    </div>
+  </div>
+
+  <!-- ═══ S3: DETAILS ═══ -->
+  <div class="sc" id="s3">
+    <div class="hero">
+      <div class="hero-icon hi-t ani d1">👤</div>
+      <div class="kicker ani d1">Step 3 of 6</div>
+      <h1 class="hl ani d2">Your<br><em>details</em></h1>
+      <p class="sub ani d3">Used for your check-in record at <strong>Hotel Plaza</strong>.</p>
+    </div>
+    <div class="body">
+      <div style="display:flex;gap:10px" class="ani d4">
+        <div class="field" style="flex:1">
+          <div class="label">First Name</div>
+          <div class="inp-wrap"><input type="text" id="fnInp" placeholder="e.g. Venkat" oninput="valDetails()"></div>
+        </div>
+        <div class="field" style="flex:1">
+          <div class="label">Last Name</div>
+          <div class="inp-wrap"><input type="text" id="lnInp" placeholder="e.g. Donela" oninput="valDetails()"></div>
+        </div>
+      </div>
+      <div class="field ani d5">
+        <div class="label">Email <span style="color:var(--muted);font-size:10px;text-transform:none;letter-spacing:0;font-weight:400">— optional</span></div>
+        <div class="inp-wrap"><input type="email" id="emInp" placeholder="your@email.com"></div>
+      </div>
+      <div class="info-box ani d5">
+        <span class="ib-ico">🔐</span>
+        <div class="ib-txt"><strong>Documents are never stored.</strong> iVeriFi reads only verified status from govt portals. DPDP Act 2023 compliant.</div>
+      </div>
+      <button class="btn ani d6" id="detBtn" onclick="go(4)" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- ═══ S4: CHOOSE ID ═══ -->
+  <div class="sc" id="s4">
+    <div class="hero">
+      <div class="hero-icon hi-g ani d1">📄</div>
+      <div class="kicker ani d1">Step 4 of 6</div>
+      <h1 class="hl ani d2">Choose<br><em>your ID</em></h1>
+      <p class="sub ani d3">Select one to share with <strong>Hotel Plaza</strong>.</p>
+    </div>
+    <div class="body">
+      <div class="foreign-bar ani d4" onclick="go(5)">
+        <div class="fb-icon">🌍</div>
+        <div class="fb-text">
+          <div class="ft1">I'm a foreign national</div>
+          <div class="ft2">Check in with your foreign passport</div>
+        </div>
+        <div class="fb-arr">Tap →</div>
+      </div>
+      <div class="doc-card sel ani d4" id="dc-a" onclick="selDoc('a')">
+        <div class="dc-icon">🪪</div>
+        <div class="dc-info">
+          <div class="dc-name">Aadhaar Card</div>
+          <div class="dc-sub t">✓ UIDAI / Govt of India</div>
+        </div>
+        <div class="dc-radio"><div class="dc-dot"></div></div>
+      </div>
+      <div class="doc-card ani d5" id="dc-d" onclick="selDoc('d')">
+        <div class="dc-icon">🚗</div>
+        <div class="dc-info">
+          <div class="dc-name">Driving Licence</div>
+          <div class="dc-sub m">Ministry of Road Transport</div>
+        </div>
+        <div class="dc-radio"><div class="dc-dot"></div></div>
+      </div>
+      <div class="doc-card ani d5" id="dc-p" onclick="selDoc('p')">
+        <div class="dc-icon">✈️</div>
+        <div class="dc-info">
+          <div class="dc-name">Passport</div>
+          <div class="dc-sub m">Ministry of External Affairs</div>
+        </div>
+        <div class="dc-radio"><div class="dc-dot"></div></div>
+      </div>
+      <div class="doc-card ani d6" id="dc-pan" onclick="selDoc('pan')">
+        <div class="dc-icon">💳</div>
+        <div class="dc-info">
+          <div class="dc-name">PAN Card</div>
+          <div class="dc-sub m">Income Tax Department</div>
+        </div>
+        <div class="dc-radio"><div class="dc-dot"></div></div>
+      </div>
+      <button class="btn" onclick="go(5)" style="margin-top:4px">Share Selected ID →</button>
+    </div>
+  </div>
+
+  <!-- ═══ S5: DIGILOCKER ═══ -->
+  <div class="sc" id="s5">
+    <div class="hero" style="text-align:center">
+      <div class="hero-icon hi-p ani d1" style="margin:0 auto 16px">🔗</div>
+      <div class="kicker ani d1" style="text-align:center">Step 5 of 6</div>
+      <h1 class="hl ani d2" style="text-align:center">Connecting to<br><em>DigiLocker</em></h1>
+      <p class="sub ani d3" style="text-align:center;margin:0 auto">Verifying your Aadhaar securely<br>with <strong>UIDAI government portal</strong>.</p>
+    </div>
+    <div class="body">
+      <div class="ani d4" style="text-align:center">
+        <div class="dl-logo">📂</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px">DigiLocker</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:2px">Secure govt document locker</div>
+        <div class="dl-dots"><div class="dld"></div><div class="dld"></div><div class="dld"></div></div>
+      </div>
+      <div class="dl-steps ani d5">
+        <div class="dl-item done" id="di0"><div class="dl-n dn-done">✓</div>Identity confirmed via OTP</div>
+        <div class="dl-item" id="di1"><div class="dl-n dn-wait" id="dn1">2</div>Connecting to DigiLocker…</div>
+        <div class="dl-item" id="di2"><div class="dl-n dn-wait" id="dn2">3</div>Reading verification status</div>
+        <div class="dl-item" id="di3"><div class="dl-n dn-wait" id="dn3">4</div>Sharing result with hotel</div>
+      </div>
+      <div class="info-box ani d5">
+        <span class="ib-ico">🔒</span>
+        <div class="ib-txt">Your Aadhaar document <strong>never leaves the UIDAI portal</strong>. Only a verified status token is shared.</div>
+      </div>
+      <!-- Next btn appears after animation -->
+      <button class="btn" id="dlNextBtn" style="display:none;margin-top:4px" onclick="go(6)">Review &amp; Share →</button>
+    </div>
+  </div>
+
+  <!-- ═══ S6: PRIVACY REVIEW ═══ -->
+  <div class="sc" id="s6">
+    <div class="hero">
+      <div class="hero-icon hi-t ani d1">🔒</div>
+      <div class="kicker ani d1">Step 6 of 6</div>
+      <h1 class="hl ani d2">Review what<br><em>gets shared</em></h1>
+      <p class="sub ani d3">Hotel Plaza receives a <strong>verified ✓ status</strong> only — never a photocopy.</p>
+    </div>
+    <div class="body">
+      <div class="priv-block pb-y ani d4">
+        <div class="pb-head">✅ Hotel receives</div>
+        <div class="chip-row">
+          <span class="chip cy">📸 Photo</span>
+          <span class="chip cy">👤 Full Name</span>
+          <span class="chip cy">🔢 Aadhaar (masked)</span>
+          <span class="chip cy">🗓️ Age 18+</span>
+          <span class="chip cy">📍 State</span>
+        </div>
+      </div>
+      <div class="priv-block pb-n ani d5">
+        <div class="pb-head">❌ Never shared</div>
+        <div class="chip-row">
+          <span class="chip cn">Full Aadhaar No.</span>
+          <span class="chip cn">Biometrics</span>
+          <span class="chip cn">Bank Details</span>
+          <span class="chip cn">Document Copy</span>
+        </div>
+      </div>
+      <div class="field ani d5">
+        <div class="label">Link expires after</div>
+        <div class="exp-row">
+          <div class="et off" onclick="setExp(this,'1h')">1 hour</div>
+          <div class="et on" onclick="setExp(this,'24h')">24 hours</div>
+          <div class="et off" onclick="setExp(this,'7d')">7 days</div>
+        </div>
+      </div>
+      <div class="info-box ani d5">
+        <span class="ib-ico">ℹ️</span>
+        <div class="ib-txt">Recipient <strong>cannot re-share</strong>. Revocable from Activity tab. DPDP Act 2023.</div>
+      </div>
+      <button class="btn ani d6" onclick="go(7)">Confirm &amp; Share with Hotel →</button>
+      <button class="btn-ghost ani d6" onclick="go(4)">← Change ID</button>
+    </div>
+  </div>
+
+  <!-- ═══ S7: SUCCESS ═══ -->
+  <div class="sc" id="s7">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 22px;text-align:center;position:relative;z-index:2;">
+      <div class="sring ani d1">✅</div>
+      <h1 class="hl ani d2" style="text-align:center;margin-bottom:8px">
+        You're <em>verified!</em>
+      </h1>
+      <p class="sub ani d3" style="text-align:center;margin-bottom:18px">
+        Your check-in request has been sent to <strong>Hotel Plaza</strong>. Please proceed to the front desk.
+      </p>
+      <!-- Guest name tag -->
+      <div class="name-tag ani d3" style="width:100%;margin-bottom:14px">
+        <div class="nt-avatar" id="ntAvatar">?</div>
+        <div>
+          <div class="nt-name" id="ntName">Guest</div>
+          <div class="nt-sub">✓ iVeriFi Verified Guest</div>
+        </div>
+      </div>
+    </div>
+    <div class="body" style="padding-top:0">
+      <div class="receipt ani d4">
+        <div class="rr"><span class="rk">Hotel</span><span class="rv">Hotel Plaza</span></div>
+        <div class="rr"><span class="rk">Document</span><span class="rv t" id="rcDoc">Aadhaar Card</span></div>
+        <div class="rr"><span class="rk">Status</span><span class="rv g">✓ Verified</span></div>
+        <div class="rr"><span class="rk">Shared at</span><span class="rv" id="rcTime">--:--</span></div>
+        <div class="rr"><span class="rk">Expires</span><span class="rv" id="rcExp">24 hours</span></div>
+        <div class="rr"><span class="rk">Data stored</span><span class="rv d">None — zero copies</span></div>
+      </div>
+      <p class="foot ani d5" style="margin-top:4px">🔒 Hotel received only <strong style="color:var(--white)">verification status</strong>, not your document copy.</p>
+      <button class="btn-ghost ani d5" onclick="restart()">← Start new demo</button>
+    </div>
+  </div>
+
+  </div><!-- /screens -->
+</div><!-- /frame -->
+
+<script>
+/* ══════════════════
+   STATE
+══════════════════ */
+let cur=0, tc=false, selD='a', exp='24h', navHist=[0];
+const PROG={0:0,1:16,2:32,3:48,4:62,5:76,6:88,7:100};
+const STEPS={0:'',1:'Step 1 of 6',2:'Step 2 of 6',3:'Step 3 of 6',4:'Step 4 of 6',5:'Step 5 of 6',6:'Step 6 of 6',7:''};
+const DOCS={a:'Aadhaar Card',d:'Driving Licence',p:'Passport',pan:'PAN Card'};
+
+/* ══════════════════
+   NAVIGATE
+══════════════════ */
+function go(n){
+  const fromEl=document.getElementById('s'+cur);
+  fromEl.classList.remove('active');
+  fromEl.classList.add('exit');
+  setTimeout(()=>fromEl.classList.remove('exit'),400);
+
+  navHist.push(n); cur=n;
+  const toEl=document.getElementById('s'+n);
+  toEl.classList.add('active');
+
+  document.getElementById('pfill').style.width=PROG[n]+'%';
+  const pill=document.getElementById('stepPill');
+  const back=document.getElementById('backBtn');
+  STEPS[n]?(pill.textContent=STEPS[n],pill.classList.add('vis')):pill.classList.remove('vis');
+  (n===0||n===7)?back.classList.remove('vis'):back.classList.add('vis');
+
+  if(n===2){
+    const p=document.getElementById('phoneInp').value.replace(/\D/g,'');
+    document.getElementById('phoneMask').textContent='+91 '+p.slice(0,5)+' '+p.slice(5);
+    setTimeout(()=>document.getElementById('o0').focus(),380);
+  }
+  if(n===5) startDL();
+  if(n===7) loadSuccess();
+
+  // scroll to top
+  toEl.scrollTop=0;
+}
+
+function goBack(){
+  if(navHist.length>1){
+    navHist.pop();
+    const prev=navHist[navHist.length-1];
+    const fromEl=document.getElementById('s'+cur);
+    fromEl.classList.remove('active');
+    fromEl.style.cssText='opacity:0;transform:translateX(80%);transition:opacity .3s ease,transform .3s ease;';
+    setTimeout(()=>fromEl.style.cssText='',350);
+
+    cur=prev;
+    const toEl=document.getElementById('s'+prev);
+    toEl.style.cssText='opacity:0;transform:translateX(-30%);';
+    toEl.classList.add('active');
+    requestAnimationFrame(()=>{
+      toEl.style.cssText='opacity:1;transform:translateX(0);transition:opacity .3s ease,transform .3s ease;';
+      setTimeout(()=>toEl.style.cssText='',350);
+    });
+
+    document.getElementById('pfill').style.width=PROG[prev]+'%';
+    const pill=document.getElementById('stepPill');
+    const back=document.getElementById('backBtn');
+    STEPS[prev]?(pill.textContent=STEPS[prev],pill.classList.add('vis')):pill.classList.remove('vis');
+    (prev===0||prev===7)?back.classList.remove('vis'):back.classList.add('vis');
+  }
+}
+
+/* ══════════════════
+   T&C
+══════════════════ */
+function toggleTC(){
+  tc=!tc;
+  document.getElementById('tcRow').classList.toggle('on',tc);
+  document.getElementById('tcChk').textContent=tc?'✓':'';
+  document.getElementById('startBtn').disabled=!tc;
+}
+
+/* ══════════════════
+   PHONE
+══════════════════ */
+function valPhone(){
+  const v=document.getElementById('phoneInp').value.replace(/\D/g,'');
+  document.getElementById('otpBtn').disabled=v.length!==10;
+}
+function sendOtp(){go(2);}
+
+/* ══════════════════
+   OTP
+══════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  for(let i=0;i<6;i++){
+    const el=document.getElementById('o'+i);
+    el.addEventListener('input',function(){
+      this.value=this.value.replace(/\D/g,'').slice(-1);
+      this.classList.toggle('filled',!!this.value);
+      if(this.value&&i<5)document.getElementById('o'+(i+1)).focus();
+      const full=[0,1,2,3,4,5].map(j=>document.getElementById('o'+j).value).join('');
+      document.getElementById('verBtn').disabled=full.length!==6;
+    });
+    el.addEventListener('keydown',function(e){
+      if(e.key==='Backspace'&&!this.value&&i>0)document.getElementById('o'+(i-1)).focus();
+    });
+  }
+});
+
+/* ══════════════════
+   DETAILS
+══════════════════ */
+function valDetails(){
+  const fn=document.getElementById('fnInp').value.trim();
+  const ln=document.getElementById('lnInp').value.trim();
+  document.getElementById('detBtn').disabled=!(fn&&ln);
+}
+
+/* ══════════════════
+   DOC SELECT
+══════════════════ */
+function selDoc(id){
+  selD=id;
+  ['a','d','p','pan'].forEach(d=>{
+    const el=document.getElementById('dc-'+d);
+    el.classList.toggle('sel',d===id);
+    el.classList.toggle('dim',false);
+  });
+}
+
+/* ══════════════════
+   EXPIRY
+══════════════════ */
+function setExp(el,val){
+  exp=val;
+  document.querySelectorAll('.et').forEach(e=>{e.classList.remove('on');e.classList.add('off');});
+  el.classList.remove('off');el.classList.add('on');
+}
+
+/* ══════════════════
+   DIGILOCKER ANIM
+══════════════════ */
+function startDL(){
+  // reset
+  ['di0','di1','di2','di3'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    const n=el.querySelector('.dl-n');
+    el.classList.remove('done','act');
+    n.className='dl-n dn-wait';
+    n.textContent=String(i+1);
+  });
+  // step 0 already done
+  const d0=document.getElementById('di0');
+  d0.classList.add('done');
+  d0.querySelector('.dl-n').className='dl-n dn-done';
+  d0.querySelector('.dl-n').textContent='✓';
+
+  document.getElementById('dlNextBtn').style.display='none';
+
+  const seq=[{id:'di1',nId:'dn1'},{id:'di2',nId:'dn2'},{id:'di3',nId:'dn3'}];
+  seq.forEach((s,i)=>{
+    setTimeout(()=>{
+      // mark previous done
+      if(i>0){
+        const prev=document.getElementById(seq[i-1].id);
+        prev.classList.remove('act');prev.classList.add('done');
+        const pn=document.getElementById(seq[i-1].nId);
+        pn.className='dl-n dn-done';pn.textContent='✓';
+      }
+      const el=document.getElementById(s.id);
+      el.classList.add('act');
+      const n=document.getElementById(s.nId);
+      n.className='dl-n dn-act';
+      // last step
+      if(i===seq.length-1){
+        setTimeout(()=>{
+          el.classList.remove('act');el.classList.add('done');
+          n.className='dl-n dn-done';n.textContent='✓';
+          document.getElementById('dlNextBtn').style.display='block';
+        },1000);
+      }
+    },(i+1)*900);
+  });
+}
+
+/* ══════════════════
+   SUCCESS
+══════════════════ */
+function loadSuccess(){
+  const fn=document.getElementById('fnInp').value.trim()||'Guest';
+  const ln=document.getElementById('lnInp').value.trim()||'';
+  const name=fn+(ln?' '+ln:'');
+  const initials=(fn[0]||'G')+(ln[0]||'');
+  document.getElementById('ntName').textContent=name;
+  document.getElementById('ntAvatar').textContent=initials.toUpperCase();
+  document.getElementById('rcDoc').textContent=DOCS[selD]||'Aadhaar Card';
+  const now=new Date();
+  document.getElementById('rcTime').textContent=
+    now.getHours().toString().padStart(2,'0')+':'+
+    now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('rcExp').textContent=
+    {h1:'1 hour','24h':'24 hours','7d':'7 days'}[exp]||'24 hours';
+  confetti();
+}
+
+function confetti(){
+  const cols=['#00E5C3','#7C5CFC','#00D97E','#FFB800','#FF4D6D'];
+  for(let i=0;i<50;i++){
+    const c=document.createElement('div');
+    c.className='cfp';
+    c.style.left=(5+Math.random()*90)+'vw';
+    c.style.top='-10px';
+    c.style.background=cols[Math.floor(Math.random()*cols.length)];
+    c.style.animationDelay=Math.random()*.9+'s';
+    c.style.animationDuration=(2+Math.random()*1.5)+'s';
+    c.style.width=c.style.height=(5+Math.random()*8)+'px';
+    c.style.borderRadius=Math.random()>.5?'50%':'2px';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),4000);
+  }
+}
+
+/* ══════════════════
+   DEMO HELPERS
+══════════════════ */
+function demoSkip(){
+  // pre-fill all fields with demo data
+  const pi=document.getElementById('phoneInp');
+  if(pi)pi.value='9876543210';
+  const fn=document.getElementById('fnInp');
+  const ln=document.getElementById('lnInp');
+  if(fn)fn.value='Venkat';
+  if(ln)ln.value='Donela';
+  tc=true;
+  document.getElementById('tcRow')?.classList.add('on');
+  const tc2=document.getElementById('tcChk');
+  if(tc2)tc2.textContent='✓';
+  const sb=document.getElementById('startBtn');
+  if(sb)sb.disabled=false;
+  // jump to success
+  go(7);
+}
+
+function restart(){
+  // clear OTP
+  for(let i=0;i<6;i++){
+    const el=document.getElementById('o'+i);
+    if(el){el.value='';el.classList.remove('filled');}
+  }
+  document.getElementById('verBtn').disabled=true;
+  tc=false;
+  document.getElementById('tcRow')?.classList.remove('on');
+  const tc2=document.getElementById('tcChk');
+  if(tc2)tc2.textContent='';
+  document.getElementById('startBtn').disabled=true;
+  navHist=[0];
+  go(0);
+}
+</script>
+</body>
+</html>
