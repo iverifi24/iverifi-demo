@@ -541,7 +541,7 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
   </div>
 
   <!-- ═══ S1: PHONE ═══ -->
-  <div class="sc" id="s1">
+  <div class="sc" id="s1" inert>
     <div class="hero">
       <div class="hero-icon hi-t ani d1">📱</div>
       <div class="kicker ani d1">Step 1 of 6</div>
@@ -553,12 +553,12 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
         <div class="label">Mobile Number</div>
         <div class="inp-wrap">
           <div class="inp-pfx">🇮🇳 +91</div>
-          <input type="tel" id="phoneInp" inputmode="numeric" maxlength="10" placeholder="98765 43210" oninput="valPhone()">
+          <input type="tel" id="phoneInp" inputmode="numeric" maxlength="10" placeholder="98765 43210" oninput="valPhone()" onkeypress="return /[0-9]/.test(event.key)">
         </div>
       </div>
       <button class="btn ani d5" id="otpBtn" onclick="sendOtp()" disabled>Send OTP →</button>
       <div class="divider ani d5">or</div>
-      <button class="btn-google ani d5" onclick="go(2)">
+      <button class="btn-google ani d5" onclick="go(3)">
         <div class="g-dot"></div> Continue with Google
       </button>
       <p class="foot ani d5">Data protected under DPDP Act 2023</p>
@@ -566,7 +566,7 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
   </div>
 
   <!-- ═══ S2: OTP ═══ -->
-  <div class="sc" id="s2">
+  <div class="sc" id="s2" inert>
     <div class="hero">
       <div class="hero-icon hi-p ani d1">🔐</div>
       <div class="kicker ani d1">Step 2 of 6</div>
@@ -575,12 +575,12 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
     </div>
     <div class="body">
       <div class="otp-row ani d4" id="otpRow">
-        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o0">
-        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o1">
-        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o2">
-        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o3">
-        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o4">
-        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o5">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o0" onkeypress="return /[0-9]/.test(event.key)">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o1" onkeypress="return /[0-9]/.test(event.key)">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o2" onkeypress="return /[0-9]/.test(event.key)">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o3" onkeypress="return /[0-9]/.test(event.key)">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o4" onkeypress="return /[0-9]/.test(event.key)">
+        <input class="ob" type="tel" inputmode="numeric" maxlength="1" id="o5" onkeypress="return /[0-9]/.test(event.key)">
       </div>
       <div class="info-box ani d4">
         <span class="ib-ico">🧪</span>
@@ -592,7 +592,7 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
   </div>
 
   <!-- ═══ S3: DETAILS ═══ -->
-  <div class="sc" id="s3">
+  <div class="sc" id="s3" inert>
     <div class="hero">
       <div class="hero-icon hi-t ani d1">👤</div>
       <div class="kicker ani d1">Step 3 of 6</div>
@@ -601,11 +601,11 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
     </div>
     <div class="body">
       <div style="display:flex;gap:10px" class="ani d4">
-        <div class="field" style="flex:1">
+        <div class="field" style="flex:1;min-width:0">
           <div class="label">First Name</div>
           <div class="inp-wrap"><input type="text" id="fnInp" placeholder="e.g. Venkat" oninput="valDetails()"></div>
         </div>
-        <div class="field" style="flex:1">
+        <div class="field" style="flex:1;min-width:0">
           <div class="label">Last Name</div>
           <div class="inp-wrap"><input type="text" id="lnInp" placeholder="e.g. Donela" oninput="valDetails()"></div>
         </div>
@@ -623,7 +623,7 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
   </div>
 
   <!-- ═══ S4: CHOOSE ID ═══ -->
-  <div class="sc" id="s4">
+  <div class="sc" id="s4" inert>
     <div class="hero">
       <div class="hero-icon hi-g ani d1">📄</div>
       <div class="kicker ani d1">Step 4 of 6</div>
@@ -640,7 +640,7 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
         <div class="fb-arr">Tap →</div>
       </div>
       <div class="doc-card sel ani d4" id="dc-a" onclick="selDoc('a')">
-        <div class="dc-icon">🪪</div>
+        <div class="dc-icon">🏛️</div>
         <div class="dc-info">
           <div class="dc-name">Aadhaar Card</div>
           <div class="dc-sub t">✓ UIDAI / Govt of India</div>
@@ -676,7 +676,7 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
   </div>
 
   <!-- ═══ S5: DIGILOCKER ═══ -->
-  <div class="sc" id="s5">
+  <div class="sc" id="s5" inert>
     <div class="hero" style="text-align:center">
       <div class="hero-icon hi-p ani d1" style="margin:0 auto 16px">🔗</div>
       <div class="kicker ani d1" style="text-align:center">Step 5 of 6</div>
@@ -706,7 +706,7 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
   </div>
 
   <!-- ═══ S6: PRIVACY REVIEW ═══ -->
-  <div class="sc" id="s6">
+  <div class="sc" id="s6" inert>
     <div class="hero">
       <div class="hero-icon hi-t ani d1">🔒</div>
       <div class="kicker ani d1">Step 6 of 6</div>
@@ -751,7 +751,7 @@ input::placeholder{color:var(--muted);font-weight:400;font-size:14px;}
   </div>
 
   <!-- ═══ S7: SUCCESS ═══ -->
-  <div class="sc" id="s7">
+  <div class="sc" id="s7" inert>
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 22px;text-align:center;position:relative;z-index:2;">
       <div class="sring ani d1">✅</div>
       <h1 class="hl ani d2" style="text-align:center;margin-bottom:8px">
@@ -802,10 +802,12 @@ function go(n){
   const fromEl=document.getElementById('s'+cur);
   fromEl.classList.remove('active');
   fromEl.classList.add('exit');
+  fromEl.setAttribute('inert','');
   setTimeout(()=>fromEl.classList.remove('exit'),400);
 
   navHist.push(n); cur=n;
   const toEl=document.getElementById('s'+n);
+  toEl.removeAttribute('inert');
   toEl.classList.add('active');
 
   document.getElementById('pfill').style.width=PROG[n]+'%';
@@ -832,11 +834,13 @@ function goBack(){
     const prev=navHist[navHist.length-1];
     const fromEl=document.getElementById('s'+cur);
     fromEl.classList.remove('active');
+    fromEl.setAttribute('inert','');
     fromEl.style.cssText='opacity:0;transform:translateX(80%);transition:opacity .3s ease,transform .3s ease;';
     setTimeout(()=>fromEl.style.cssText='',350);
 
     cur=prev;
     const toEl=document.getElementById('s'+prev);
+    toEl.removeAttribute('inert');
     toEl.style.cssText='opacity:0;transform:translateX(-30%);';
     toEl.classList.add('active');
     requestAnimationFrame(()=>{
